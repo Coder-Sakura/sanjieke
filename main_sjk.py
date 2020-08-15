@@ -1,5 +1,6 @@
 import os
 import json
+import re
 
 from sjk_content import SJK_CONTENT
 from sjk_video import SJK_VIDEO
@@ -10,7 +11,7 @@ class Pivot:
 	def __init__(self,class_url):
 		self.host = "class.sanjieke.cn"
 		# 课程存储目录
-		self.root_path = r""
+		self.root_path = r"G:\python_code"
 		# 课程
 		self.class_url = class_url
 		self.class_name = ""
@@ -114,7 +115,7 @@ class Pivot:
 
 		# 判断章节数据是否异常
 		if stage_data == False:
-			print("获取stage数据失败 ",self.class_api_url.format(class_id))
+			print("获取stage数据失败 ",self.class_api_url.format(self.class_id))
 
 		pool = ThreadPool(8)
 
@@ -130,16 +131,17 @@ class Pivot:
 				for section in section_data:
 					card_path = folder(stage_path,section["card_name"])
 					t,v = self.get_content(section["section_id"])
-					# break
 					if t != []:
-						docx_path = os.path.join(card_path,"{}.docx".format(section["section_name"]))
-						# self.sc.main(docx_path,t)
-						pool.put(self.sc.main,(docx_path,t,),callback)
+						section_name = re.sub('[\/:*?"<>|]','_',section["section_name"])
+						docx_path = os.path.join(card_path,"{}.docx".format(section_name))
+						# self.sc.main(section_name,docx_path,t)
+						pool.put(self.sc.main,(section_name,docx_path,t,),callback)
 
 					if v != []:
 						for _ in v:
 							audio_matser_url = self.audio_matser_api_url.format(self.class_id,_)
-							video_path = os.path.join(card_path,"{}.mp4".format(section["section_name"]))
+							section_name = re.sub('[\/:*?"<>|]','_',section["section_name"])
+							video_path = os.path.join(card_path,"{}.mp4".format(section_name))
 							self.video_task.append({"video_path":video_path,"audio_matser_url":audio_matser_url})
 		except Exception as e:
 			print(e)
@@ -153,7 +155,7 @@ class Pivot:
 
 
 if __name__ == '__main__':
-	class_url = ""
+	class_url = "https://class.sanjieke.cn/stages/23134530"
 	p = Pivot(class_url)
 	p.main()
 

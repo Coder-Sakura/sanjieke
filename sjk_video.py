@@ -41,6 +41,7 @@ class SJK_VIDEO:
 		media_m3u8_path = os.path.join(self.sv_path,media_m3u8_name)
 		self.down(media_m3u8_path,network_connect(media_rates_url).content)
 
+		high_rate_m3u8_url = ""
 		with open(media_m3u8_path,"r",encoding="utf8") as f:
 			r = f.readlines()
 			for i in range(len(r)):
@@ -122,9 +123,9 @@ class SJK_VIDEO:
 			print("高码率视频m3u8链接获取失败 audio_matser_url: ",audio_matser_url)
 			return
 
-		# 高码率m3u8文件名称 20732994.m3u8
+		# 高码率m3u8文件名称
 		self.high_rate_m3u8_name = self.high_rate_m3u8_url.split("?")[0].split("/")[-1]
-		# 以m3u8文件名前缀创建临时目录 20732994
+		# 以m3u8文件名前缀创建临时目录
 		self.m3u8_work_path = folder(self.sv_path,video_id)
 		# 高码率m3u8文件存储路径
 		self.m3u8_path = os.path.join(self.m3u8_work_path,self.high_rate_m3u8_name)
@@ -139,3 +140,6 @@ class SJK_VIDEO:
 		self.cryptor = AES.new(self.key, AES.MODE_CBC, self.key)
 		self.get_ts()
 		self.ts2mp4(video_path)
+
+# sjk = SJK_VIDEO()
+# sjk.main(r"G:\python_code\test.mp4","https://service.sanjieke.cn/video/master/auth?video_id=xxxxx&class_id=2xxxx")

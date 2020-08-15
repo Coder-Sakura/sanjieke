@@ -174,8 +174,8 @@ class ThreadPool:
             # 将线程从空闲列表中移除
             state_list.remove(worker_thread)
 
-"""
 
+"""
 # 调用方式
 if __name__ == '__main__':
     # 创建一个最多包含5个线程的线程池
@@ -188,20 +188,19 @@ if __name__ == '__main__':
     # 等待一定时间，让线程执行任务
     # time.sleep(3)
 
-    print("-" * 50)
-    while True:
-        print("\033[32;0m任务停止之前线程池中有%s个线程，空闲的线程有%s个！\033[0m"
-              % (len(pool.generate_list), len(pool.free_list)))
 
-        if len(pool.free_list) == pool.max_num and len(pool.generate_list) == 5:
-            # 正常关闭线程池
-            pool.close()
-            print("任务执行完毕，正常退出！")
-            break
+    # while True:
+    #     print("\033[32;0m任务停止之前线程池中有%s个线程，空闲的线程有%s个！\033[0m"
+    #           % (len(pool.generate_list), len(pool.free_list)))
 
-        time.sleep(1)
+    #     if len(pool.free_list) == pool.max_num and len(pool.generate_list) == 5:
+    #         # 正常关闭线程池
+    #         pool.close()
+    #         print("任务执行完毕，正常退出！")
+    #         break
+
+    #     time.sleep(1)
     # 强制关闭线程池
     # pool.terminate()
     # print("强制停止任务！")
-
 """

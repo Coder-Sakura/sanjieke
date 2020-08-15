@@ -10,9 +10,6 @@ from docx.enum.text import WD_ALIGN_PARAGRAPH
 from docx.oxml.ns import qn
 
 class SJK_CONTENT:
-	def __init__(self):
-		self.document = Document()
-
 	def remove_label(self,text_content):
 		"""
 		过滤文本
@@ -46,17 +43,17 @@ class SJK_CONTENT:
 
 		return res
 
-	def write_docx(self,docx_path,new_text_content):
+	def write_docx(self,section_name,docx_path,new_text_content):
 		"""
 		章节文档写入docx
 		:params docx_path: docx存储路径
 		:params new_text_content: 过滤过的内容
 		:return : None
 		"""
-		name = docx_path.split(r"/")[-1]
-		document = self.document
+		# 解决了写入标题都是同一个标题的Bug
+		document = Document()
 		# 添加标题0,居中
-		head = document.add_heading(name,0)
+		head = document.add_heading(section_name,0)
 		head.paragraph_format.alignment = WD_ALIGN_PARAGRAPH.CENTER
 
 		# 更改Normal样式,正文
@@ -70,7 +67,7 @@ class SJK_CONTENT:
 		print(docx_path,"下载完成")
 		time.sleep(1)
 
-	def main(self,docx_path,text_content):
+	def main(self,section_name,docx_path,text_content):
 		# 先正则过滤,再写入
 		# 不存在则进行SC流程
 		if os.path.exists(docx_path):
@@ -78,4 +75,4 @@ class SJK_CONTENT:
 			return
 
 		new_text_content = self.remove_label(text_content)
-		self.write_docx(docx_path,new_text_content)
+		self.write_docx(section_name,docx_path,new_text_content)
