@@ -27,7 +27,7 @@
 1. 填写存储路径：
 
    ```python
-   # main_sjk.py文件中的self.root_path
+   # main_sjk.py--self.root_path
    self.root_path = r"G:\your_path"
    ```
 
@@ -36,11 +36,11 @@
 2. 填写三节课平台cookie：
 
    ```python
-   # sjk_public.py文件中的network_connect函数
+   # sjk_public.py--network_connect
    headers = {
-   			"cookie": your_cookie,
-   			"user-agent": your_user_agent
-   	}
+   	"cookie": your_cookie,
+   	"user-agent": your_user_agent
+   }
    ```
 
    
@@ -50,12 +50,11 @@
    ```python
    # main_sjk.py
    if __name__ == '__main__':
-   	class_url = your_url
-   	p = Pivot(class_url)
-   	p.main()
-   
+       class_url = your_url
+       p = Pivot(class_url)
+       p.main()
    ```
-
+   
 4. 安装依赖
 
    ```bash
