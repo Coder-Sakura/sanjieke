@@ -1,9 +1,21 @@
+# -*- encoding: utf-8 -*-
+'''
+@File    :   sjk_video.py
+@Time    :   2022/04/21 11:16:02
+@Author  :   Coder-Sakura
+@Version :   1.0
+@Desc    :   None
+'''
+
+# here put the import lib
 import os
 import json
 import time
 from Crypto.Cipher import AES
 
-from sjk_public import folder,network_connect
+
+from sjk_tool import tool, folder, network_connect, logger
+
 
 class SJK_VIDEO:
 	def __init__(self):
@@ -23,23 +35,27 @@ class SJK_VIDEO:
 		self.m3u8_work_path = ""
 
 	# 下载
-	def down(self,path,content):
+	def download(self, path, content):
 		with open(path,"wb") as f:
 			f.write(content)
 
 	# 获取m3u8 url
-	def get_m3u8_url(self,audio_matser_url):
-		resp = json.loads(network_connect(audio_matser_url).text)
-		if resp.get("code",None) == 200:
-			return resp["data"]["url"]
+	def get_m3u8_url(self):
+		resp = network_connect(
+			tool.config["video"], 
+			**{"params": self.video_data["params"]}
+		)
+		res = json.loads(resp.text)
+		if res.get("code",None) == 200:
+			return res["data"]["url"]
 		else:
 			return None
 
-	# 多码率列表文件解析
-	def parse_rate(self,media_rates_url):
+	# 多码率m3u8文件解析
+	def parse_rate(self, media_rates_url):
 		media_m3u8_name = media_rates_url.split("?")[0].split("/")[-1]
-		media_m3u8_path = os.path.join(self.sv_path,media_m3u8_name)
-		self.down(media_m3u8_path,network_connect(media_rates_url).content)
+		media_m3u8_path = os.path.join(self.sv_path, media_m3u8_name)
+		self.download(media_m3u8_path, network_connect(media_rates_url).content)
 
 		high_rate_m3u8_url = ""
 		with open(media_m3u8_path,"r",encoding="utf8") as f:
@@ -55,42 +71,44 @@ class SJK_VIDEO:
 
 	# 获取解密key
 	def get_m3u8_key(self):
-		with open(self.m3u8_path,"r",encoding="utf8") as f:
+		# 高码率m3u8文件
+		with open(self.m3u8_path, "r", encoding="utf8") as f:
 			for i in f.readlines():
 				if "EXT-X-KEY" in i:
 					key_url = i.split('URI="')[1].split('"')[0]
 					if key_url != self.key_url:
-						return self.key_url,network_connect(key_url).content
+						return self.key_url, network_connect(key_url).content
 
 	def get_ts(self):
-		with open(self.m3u8_path,"r",encoding="utf8") as f:
+		# 高码率m3u8文件
+		with open(self.m3u8_path, "r", encoding="utf8") as f:
 			r = f.readlines()
 			for i in range(len(r)):
-				 if "#EXTINF" in r[i]:
-				 	ts_url = r[i+1].replace("\n","")
-				 	ts_name = r[i+1].replace("\n","").split("?")[0].split("/")[-1]
-				 	print("\rTS文件下载中...({}/{}){}".format(i,len(r),ts_name),end="")
+				if "#EXTINF" in r[i]:
+					ts_url = r[i+1].replace("\n", "")
+					ts_name = r[i+1].replace("\n", "").split("?")[0].split("/")[-1]
+					# logger.debug("\rTS文件下载中...({}/{}){}".format(i, len(r), ts_name), end="")
+					
+					self.ts_list.append(ts_name)
+					resp = network_connect(ts_url).content
+					self.down_ts(ts_name, resp)
 
-				 	self.ts_list.append(ts_name)
-				 	resp = network_connect(ts_url).content
-			 		self.down_ts(ts_name,resp)
-
-	def down_ts(self,ts_name,content):
-		ts_path = os.path.join(self.m3u8_work_path,ts_name)
-		with open(ts_path,"wb") as f:
+	def down_ts(self, ts_name, content):
+		ts_path = os.path.join(self.m3u8_work_path, ts_name)
+		with open(ts_path, "wb") as f:
 			f.write(self.cryptor.decrypt(content))
 
-	def ts2mp4(self,video_path):
-		with open(video_path,"wb") as f1:
+	def ts2mp4(self, video_path):
+		with open(video_path, "wb") as f1:
 			for i in self.ts_list:
-				with open(os.path.join(self.m3u8_work_path,i),"rb") as f2:
+				with open(os.path.join(self.m3u8_work_path, i), "rb") as f2:
 					d = f2.readlines()
 					for _ in d:
 						f1.write(_)
-		print("\n",video_path,"下载完成")
+		logger.success(f"视频下载成功: {video_path}")
 		# 删除ts文件
 		for i in self.ts_list:
-			os.remove(os.path.join(self.m3u8_work_path,i))
+			os.remove(os.path.join(self.m3u8_work_path, i))
 
 		# 高码率m3u8文件
 		os.remove(self.m3u8_path)
@@ -98,43 +116,48 @@ class SJK_VIDEO:
 		os.rmdir(self.m3u8_work_path)
 		time.sleep(1)
 
-	def main(self,video_path,audio_matser_url):
+	@logger.catch
+	def main(self, video_data):
 		"""
-		:params video_path:视频存储路径.H:\test.mp4
-		:params audio_matser_url:视频地址
+		:params video_data: video_data
 		"""
-		# audio_matser_url-media_rates_url
 		# 视频地址-码率链接列表(down)-高码率m3u8(down)-get加密key-下载ts(down)-合并ts
-		# 存在则跳过SV流程
-		if os.path.exists(video_path):
-			print(video_path,"已存在")
-			return
-		self.ts_list = []
-		self.sv_path = video_path.rsplit("\\",1)[0]
-		video_id = audio_matser_url.split("video_id=")[-1]
 
-		media_rates_url = self.get_m3u8_url(audio_matser_url)
+		self.video_data = video_data
+		self.sv_path = video_data["video_path"].rsplit("\\",1)[0]
+		video_path = video_data["video_path"]
+		video_id = video_data["params"]["video_id"]
+
+		
+		logger.debug(f"<video_data> - {video_data}")
+		if os.path.exists(video_path):
+			logger.debug(f"已存在: <video_path> {video_path}")
+			return
+		else:
+			logger.info(f"开始下载 - <{video_path}>")
+
+		media_rates_url = self.get_m3u8_url()
 		if media_rates_url == None:
-			print("获取media_rates_url失败 audio_matser_url: ",audio_matser_url)
+			logger.warning(f"获取media_rates_url失败 - {media_rates_url} {video_data['params']}")
 			return
 
 		self.high_rate_m3u8_url = self.parse_rate(media_rates_url)
 		if self.high_rate_m3u8_url == "":
-			print("高码率视频m3u8链接获取失败 audio_matser_url: ",audio_matser_url)
+			logger.warning(f"高码率视频m3u8链接获取失败 - {media_rates_url} {video_data['params']}")
 			return
 
 		# 高码率m3u8文件名称
 		self.high_rate_m3u8_name = self.high_rate_m3u8_url.split("?")[0].split("/")[-1]
 		# 以m3u8文件名前缀创建临时目录
-		self.m3u8_work_path = folder(self.sv_path,video_id)
+		self.m3u8_work_path = folder(str(video_id), self.sv_path)
 		# 高码率m3u8文件存储路径
-		self.m3u8_path = os.path.join(self.m3u8_work_path,self.high_rate_m3u8_name)
+		self.m3u8_path = os.path.join(self.m3u8_work_path, self.high_rate_m3u8_name)
 		# 下载高码率m3u8文件
-		self.down(self.m3u8_path,network_connect(self.high_rate_m3u8_url).content)
+		self.download(self.m3u8_path, network_connect(self.high_rate_m3u8_url).content)
 
-		self.key_url,self.key = self.get_m3u8_key()
+		self.key_url, self.key = self.get_m3u8_key()
 		if self.key == None:
-			print("m3u8Key获取失败: ",self.key)
+			logger.warning(f"m3u8Key获取失败 - key: {self.key}")
 			return
 
 		self.cryptor = AES.new(self.key, AES.MODE_CBC, self.key)
@@ -142,4 +165,5 @@ class SJK_VIDEO:
 		self.ts2mp4(video_path)
 
 # sjk = SJK_VIDEO()
-# sjk.main(r"G:\python_code\test.mp4","https://service.sanjieke.cn/video/master/auth?video_id=xxxxx&class_id=2xxxx")
+# sjk.main(r"G:\python_code\test.mp4","https://service.sanjieke.cn/video/master/auth?video_id=3693933&class_id=33253787")
+# sjk.main({"video_path": r"G:\python_code\test.mp4", "params": {"video_id":3693933, "class_id":33253787}})
