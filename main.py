@@ -1,15 +1,23 @@
+# -*- encoding: utf-8 -*-
+'''
+@File    :   main.py
+@Time    :   2022/04/21 19:08:04
+@Author  :   Coder-Sakura
+@Version :   1.0
+@Desc    :   None
+'''
+
+# here put the import lib
 import os
 import re
 import time
 import json
 
 from sjk_tool import tool, logger, \
-	folder, network_connect, default_headers, COURSE_SLEEP
+	folder, network_connect, default_headers, COURSE_SLEEP, START_PAGE
 from sjk_content import SJK_CONTENT
 from sjk_video import SJK_VIDEO
 from thread_pool import callback
-# test
-# from thread_pool import ThreadPool, callback
 
 
 class CourseHandler:
@@ -141,7 +149,7 @@ class CourseHandler:
 				video_data["video_path"] = os.path.join(node_path, f"{section_name}.mp4")
 				video_data["params"] = {"class_id": self.cid, "video_id": _,}
 				tool.pool.put(SJK_VIDEO().main, (video_data, ), callback)
-				time.sleep(0.5)
+				time.sleep(0.1)
 
 	def main(self):
 		if self.cid:
@@ -161,7 +169,7 @@ class CourseHandler:
 				logger.debug(f"<section> - {section}")
 				self.get_section_data(node_path, section)
 				# tool.pool.put(self.get_section_data, (node_path, section, ), callback)
-				time.sleep(1)
+				time.sleep(0.5)
 
 
 class Handler:
@@ -231,31 +239,21 @@ class Handler:
 			return exp
 
 	def main(self):
-		page = 1
+		page = START_PAGE
 		while True:
 			course_list = self.discoverInfo(page=page)
-			# test
-			course_list = course_list[:2]
-			# course_list = course_list[1:2]
 			logger.info(f"当前下载第{page}页, 共{len(course_list)}门课程.")
 			for i, _ in enumerate(course_list):
 				with CourseHandler(i, len(course_list), _) as h:
 					h.main()
-				# test
-				# break
+
 				logger.info(f"每下载完一门课程,将休眠{COURSE_SLEEP}秒 zzz....")
 				if i+1 != len(course_list):
-					# test
-					time.sleep(7)
-					# time.sleep(COURSE_SLEEP)
+					time.sleep(COURSE_SLEEP)
 
 			if len(course_list) < 20 or not course_list:
 				break
 			else:
-				time.sleep(5)
-				# test
-				if page == 2:
-					break
 				page += 1
 			
 

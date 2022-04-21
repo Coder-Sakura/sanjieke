@@ -21,17 +21,20 @@ from thread_pool import ThreadPool
 
 # ===== CUSTOM CONFIG ===== #
 # 用户自定义下载目录
-ROOT_PATH = r"F:\sanjieke"
+ROOT_PATH = r"your path"
 # 用户自定义休眠时间 - 每门课程下载完成后的休眠时间,秒
 COURSE_SLEEP = 300
+# 用户自定义下载开始页数
+START_PAGE = 1
+
 
 # 登录方式1 - 账号&密码(推荐)
-USER_PHONE = "18816742317"
-USER_PASSWD = "s1343203292"
+USER_PHONE = "your phone"
+USER_PASSWD = "your pwd"
 # 登录方式2 - COOKIE
 USER_COOKIE = ""
 # ===== CUSTOM CONFIG ===== #
-DEBUG = True
+DEBUG = False
 
 
 default_headers = {

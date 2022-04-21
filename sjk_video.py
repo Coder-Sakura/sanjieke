@@ -95,8 +95,11 @@ class SJK_VIDEO:
 
 	def down_ts(self, ts_name, content):
 		ts_path = os.path.join(self.m3u8_work_path, ts_name)
-		with open(ts_path, "wb") as f:
-			f.write(self.cryptor.decrypt(content))
+		try:
+			with open(ts_path, "wb") as f:
+				f.write(self.cryptor.decrypt(content))
+		except Exception as e:
+			logger.warning(f"TS文件下载错误,已自动跳过 - {ts_name} - {self.sv_path}")
 
 	def ts2mp4(self, video_path):
 		with open(video_path, "wb") as f1:

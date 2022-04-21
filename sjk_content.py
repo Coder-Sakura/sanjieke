@@ -11,6 +11,7 @@
 import os
 import re
 import time
+import random
 from docx import Document
 # 居中
 from docx.enum.text import WD_ALIGN_PARAGRAPH
@@ -57,16 +58,22 @@ class SJK_CONTENT:
 		return res
 
 	def find_size(self, index):
+		size = []
 		size_regular = re.compile(r""".*?width=['"](.*?)['"].*?height=['"](.*?)['"].*?""")
-		size = re.findall(size_regular, self.text_content[index])
-		if not size:
-			size = []
+		try:
+			size = re.findall(size_regular, self.text_content[index])
+		except:
+			return []
+		else:
+			if not size:
+				return []
 		# width height [('128', '36')] or []
 		return size
 
 	def get_img(self, url):
 		img_path = os.path.join(
-			os.path.dirname(self.docx_path), f"{str(time.time())}.jpg"
+			os.path.dirname(self.docx_path),
+			f"{str(int(time.time()))}-{str(random.choice(range(100)))}.jpg"
 		)
 		resp = network_connect(url)
 		with open(img_path, "wb") as f:
@@ -97,15 +104,16 @@ class SJK_CONTENT:
 
 		for k, _ in enumerate(new_text_content):
 			# 插入图片
-			if _.startswith("http://") or _.startswith("https://"):
+			if (_.startswith("http://") or _.startswith("https://")) and \
+				any([".jpg" in _, ".png" in _, ".jpeg" in _]):
 				try:
 					img_path = self.get_img(_)
+					shape = document.add_picture(img_path)
 				except Exception as e:
-					logger.warning(f"获取img链接出错... - {_}")
+					logger.warning(f"获取图片img链接 或 向docx内添加图片出错... - {_} - {e}")
 					paragraph = document.add_paragraph(_, 'Normal')
 					paragraph.paragraph_format.space_before = Pt(20)
 				else:
-					shape = document.add_picture(img_path)
 					size = self.find_size(k)
 					if size:
 						pass
@@ -131,13 +139,9 @@ class SJK_CONTENT:
 
 		# 先正则过滤,再写入
 		# 不存在则进行SC流程
-		print(section_name, docx_path, text_content)
 		if os.path.exists(docx_path):
 			logger.success(f"已存在: <docx_path> {docx_path}")
-			print(2)
 			return
 
-		print(3)
 		new_text_content = self.remove_label(text_content)
-		print(4)
 		self.write_docx(section_name, docx_path, new_text_content)
