@@ -6,72 +6,102 @@
 
 ### 功能/Feat
 
-- [ ] 发现课程与指定课程下载
-- [x] 下载`m3u8`视频流，合并为`mp4`
-- [x] 将每节课文字内容生成为`docx`
-- [x] 简单配置存储目录，课程地址和cookie即可
-- [x] 多线程提取docx和视频信息，再进行视频下载
+---
 
+- [x] 发现课程页下载（`vip`视频需要登录`vip`账号）
+- [x] 支持账号密码形式登录（推荐）
+- [x] 支持cookie登录
+- [x] 支持下载`m3u8`视频流合并为`mp4`输出
+- [x] 支持课程文档内容生成为`docx`（图片插入）
+- [x] 多线程下载
 
+</br>
 
-### 预览/Preview
+### TODO
 
-![](https://i.loli.net/2020/08/15/zJW51VfQABTqPv2.png)
+---
 
-> 以“运营新人启航计划（第十期）”为参考目标，下载后的目录如图
+- [ ] 指定课程下载
 
-
+</br>
 
 ### 如何使用/Usage
 
-1. 填写存储路径：
+---
 
-   ```python
-   # main_sjk.py--self.root_path
-   self.root_path = r"G:\your_path"
-   ```
+#### 安装Python
 
-   
+略
 
-2. 填写三节课平台cookie：
+</br>
 
-   ```python
-   # sjk_public.py--network_connect
-   headers = {
-   	"cookie": your_cookie,
-   	"user-agent": your_user_agent
-   }
-   ```
+#### 安装第三方依赖
 
-   
+```bash
+# 更新pip 可选
+pip install --upgrade pip
+# 安装第三方库
+pip install -r requirements.txt -i https://pypi.douban.com/simple/
+```
 
-3. 开始使用
+</br>
 
-   ```python
-   # main_sjk.py
-   if __name__ == '__main__':
-       class_url = your_url
-       p = Pivot(class_url)
-       p.main()
-   ```
-   
-4. 安装依赖
+#### 填写配置
 
-   ```bash
-   pip install -r requirements.txt
-   ```
+---
 
-   或
+打开`sanjieke/sjk_tool.py`
 
-   ```bash
-   pip install -r requirements.txt -i http://pypi.douban.com/simple --trusted-host pypi.douban.com
-   ```
+**ROOT_PATH**
+填写课程下载目录
 
-5. 终端运行
+```python
+# LINE - 24
+# 用户自定义下载目录
+ROOT_PATH = r"your path"
+```
 
-   ```bash
-   Python main_sjk.py
-   ```
+</br>
+
+**START_PAGE** (可选)
+用户自定义下载开始页数
+
+```python
+# LINE - 27
+# 用户自定义下载开始页数
+START_PAGE = 1
+```
+
+</br>
+
+**登录方式**  (重要)
+支持账号密码 (推荐) 或cookie
+
+```python
+# 登录方式1 - 账号&密码(推荐)
+USER_PHONE = "your phone"
+USER_PASSWD = "your pwd"
+
+# 登录方式2 - COOKIE
+USER_COOKIE = ""
+```
+
+</br>
+
+**终端运行**
+
+```bash
+python main.py
+```
+
+</br>
+
+### 预览/Preview
+
++ 下图为<产品经理进阶课>该门课程下载完毕后的目录结构
++ https://www.sanjieke.cn/course/detail/sjk/8000028
+
+![](https://s2.loli.net/2022/04/21/dYfWuTHbaemzSZr.png)
 
 
 
@@ -93,11 +123,11 @@
     pip install pycryptodome
     ```
 
-+ 本仓库仅在Windows系统上进行过裸机测试。
++ 该`repo`仅在`Windows`系统进行虚拟环境测试
 
 
 
 ### 最后/Last
 
-+ 该repo仅用于学习交流使用
-+ 欢迎 :star: `Star`，提`Pr `和` Issue`，共勉
++ 该`repo`仅用于学习交流使用
++ 欢迎 :star: `Star`，提`Pr `和` Issue`，共勉！
