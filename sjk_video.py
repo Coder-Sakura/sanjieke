@@ -14,7 +14,33 @@ import time
 from Crypto.Cipher import AES
 
 
-from sjk_tool import tool, folder, network_connect, logger
+from sjk_tool import tool, folder, network_connect, \
+	logger, session, default_headers
+
+
+def ts_stream(ts_url, ts_path, cryptor, rty_num=3):
+	chunk_size = 1024
+	type = "GET"
+	try:
+		resp = session.request(
+			type,
+			ts_url,
+			headers = default_headers,
+			stream = True,
+			timeout = 10
+		)
+	except Exception as e:
+		if rty_num > 0:
+			return ts_stream(ts_url, ts_path, cryptor, rty_num=rty_num-1)
+		else:
+			logger.warning("Error: {} {}".format(ts_url, e))
+
+	# TODO ADD ERROR log
+	with open(ts_path, "wb") as file:
+		for data in resp.iter_content(chunk_size=chunk_size):
+			file.write(cryptor.decrypt(data))
+
+
 
 
 class SJK_VIDEO:
@@ -90,16 +116,19 @@ class SJK_VIDEO:
 					# logger.debug("\rTS文件下载中...({}/{}){}".format(i, len(r), ts_name), end="")
 					
 					self.ts_list.append(ts_name)
-					resp = network_connect(ts_url).content
-					self.down_ts(ts_name, resp)
+					ts_path = os.path.join(self.m3u8_work_path, ts_name)
+					ts_stream(ts_url, ts_path, self.cryptor)
 
+	"""
 	def down_ts(self, ts_name, content):
 		ts_path = os.path.join(self.m3u8_work_path, ts_name)
-		try:
-			with open(ts_path, "wb") as f:
-				f.write(self.cryptor.decrypt(content))
-		except Exception as e:
-			logger.warning(f"TS文件下载错误,已自动跳过 - {ts_name} - {self.sv_path}")
+		if not os.path.exists(ts_path):
+			try:
+				with open(ts_path, "wb") as f:
+					f.write(self.cryptor.decrypt(content))
+			except Exception as e:
+				logger.warning(f"TS文件下载错误,已自动跳过 - {ts_name} - {ts_path}")
+	"""
 
 	def ts2mp4(self, video_path):
 		with open(video_path, "wb") as f1:
