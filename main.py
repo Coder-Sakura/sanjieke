@@ -57,6 +57,10 @@ class CourseHandler:
 			return ""
 
 		logger.debug(res)
+		if res["data"] == None and res["msg"] == "请登录":
+			tool.config["cookie"] = tool.user_info_handler()
+			return self.get_sku()
+
 		if res:
 			cid = res["data"]["return_url"].split("cid/")[-1].rsplit("/")[0]
 			return cid
