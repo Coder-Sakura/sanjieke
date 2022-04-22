@@ -29,7 +29,7 @@ class CourseHandler:
 
 	def __enter__(self):
 		# 创建课程根目录
-		course = re.sub('[\/:*?"<>|]', '_', self.course_data["course"])
+		course = re.sub('[\/:*?"<>|]', '_', self.course_data["course"]).replace("\t","")
 		self.course_path = folder(course)
 		self.cid = self.get_sku()
 		return self
@@ -142,7 +142,7 @@ class CourseHandler:
 		logger.debug(f"<len(text_list)> - {len(text_list)} | <len(video_id_list)> - {len(video_id_list)} ")
 		# 内容处理
 		if text_list != []:
-			section_name = re.sub('[\/:*?"<>|]', '_', section_data["title"])
+			section_name = re.sub('[\/:*?"<>|]', '_', section_data["title"]).replace("\t","")
 			docx_path = os.path.join(node_path, f"{section_name}.docx")
 			SJK_CONTENT().main(section_name, docx_path, text_list)
 			# tool.pool.put(SJK_CONTENT().main, (section_name, docx_path, text_list, ), callback)
@@ -150,7 +150,7 @@ class CourseHandler:
 		if video_id_list != []:
 			for _ in video_id_list:
 				video_data = {}
-				section_name = re.sub('[\/:*?"<>|]', '_', section_data["title"])
+				section_name = re.sub('[\/:*?"<>|]', '_', section_data["title"]).replace("\t","")
 				video_data["video_path"] = os.path.join(node_path, f"{section_name}.mp4")
 				video_data["params"] = {"class_id": self.cid, "video_id": _,}
 				tool.pool.put(SJK_VIDEO().main, (video_data, ), callback)
@@ -169,7 +169,7 @@ class CourseHandler:
 		logger.info(f"({self.index+1}/{self.len})当前下载课程: 《{self.course_data['title']}》 - 共{len(tree)}章")
 		for node in tree:
 			# 创建大章根目录
-			title = re.sub('[\/:*?"<>|]', '_', node["title"])
+			title = re.sub('[\/:*?"<>|]', '_', node["title"]).replace("\t","")
 			node_path = folder(title, self.course_path)
 			for section in node["children"]:
 				logger.debug(f"<section> - {section}")
