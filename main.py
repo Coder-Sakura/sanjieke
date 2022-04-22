@@ -156,6 +156,7 @@ class CourseHandler:
 				tool.pool.put(SJK_VIDEO().main, (video_data, ), callback)
 				time.sleep(0.1)
 
+	@logger.catch
 	def main(self):
 		if self.cid:
 			logger.debug(f"cid - {self.cid}")
@@ -251,7 +252,10 @@ class Handler:
 			logger.info(f"当前下载第{page}页, 共{len(course_list)}门课程.")
 			for i, _ in enumerate(course_list):
 				with CourseHandler(i, len(course_list), _) as h:
-					h.main()
+					try:
+						h.main()
+					except Exception as e:
+						logger.warning(f"{_['title']} - 下载异常出错 - {e}")
 
 				logger.info(f"每下载完一门课程,将休眠{COURSE_SLEEP}秒 zzz....")
 				if i+1 != len(course_list):
