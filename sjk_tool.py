@@ -9,6 +9,7 @@
 
 # here put the import lib
 import os
+import re
 import sys
 import time
 import random
@@ -108,6 +109,8 @@ class Tool:
 
 
 def folder(name, root_path=ROOT_PATH):
+	name = re.sub('[\/:*?"<>|]', '_', name)
+	name = name.replace("\t","")
 	name = str(name)
 	# 目录,文件夹命名
 	isExists = os.path.exists(root_path)

@@ -29,8 +29,7 @@ class CourseHandler:
 
 	def __enter__(self):
 		# 创建课程根目录
-		course = re.sub('[\/:*?"<>|]', '_', self.course_data["course"]).replace("\t","")
-		self.course_path = folder(course)
+		self.course_path = folder(self.course_data["course"])
 		self.cid = self.get_sku()
 		return self
 
@@ -170,13 +169,20 @@ class CourseHandler:
 		logger.info(f"({self.index+1}/{self.len})当前下载课程: 《{self.course_data['title']}》 - 共{len(tree)}章")
 		for node in tree:
 			# 创建大章根目录
-			title = re.sub('[\/:*?"<>|]', '_', node["title"]).replace("\t","")
-			node_path = folder(title, self.course_path)
-			for section in node["children"]:
+			node_path = folder(node["title"], self.course_path)
+
+			# 课程:大章节:仅一小章节
+			if not node["children"]:
+				section = {"node_id":node["node_id"], "title":node["title"]}
 				logger.debug(f"<section> - {section}")
 				self.get_section_data(node_path, section)
-				# tool.pool.put(self.get_section_data, (node_path, section, ), callback)
 				time.sleep(0.5)
+			else:
+				for section in node["children"]:
+					logger.debug(f"<section> - {section}")
+					self.get_section_data(node_path, section)
+					# tool.pool.put(self.get_section_data, (node_path, section, ), callback)
+					time.sleep(0.5)
 
 
 class Handler:
