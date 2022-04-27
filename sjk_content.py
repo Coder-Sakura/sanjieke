@@ -75,9 +75,12 @@ class SJK_CONTENT:
 			os.path.dirname(self.docx_path),
 			f"{str(int(time.time()))}-{str(random.choice(range(100)))}.jpg"
 		)
-		resp = network_connect(url)
-		with open(img_path, "wb") as f:
-			f.write(resp.content)
+		try:
+			resp = network_connect(url)
+			with open(img_path, "wb") as f:
+				f.write(resp.content)
+		except:
+			return None
 
 		return img_path
 
@@ -108,22 +111,29 @@ class SJK_CONTENT:
 				any([".jpg" in _, ".png" in _, ".jpeg" in _]):
 				try:
 					img_path = self.get_img(_)
-					shape = document.add_picture(img_path)
 				except Exception as e:
-					logger.warning(f"获取图片img链接 或 向docx内添加图片出错... - {_} - {e}")
+					logger.warning(f"下载文档图片链接出错 - {_} - {e}")
+
+				if img_path:
+					try:
+						shape = document.add_picture(img_path)
+					except Exception as e:
+						logger.warning(f"向docx内添加图片出错... - {_} - {e}")
+						paragraph = document.add_paragraph(_, 'Normal')
+						paragraph.paragraph_format.space_before = Pt(20)
+					else:
+						size = self.find_size(k)
+						if size:
+							pass
+							# shape.width, shape.height = int(size[0][0]), int(size[0][1])
+						else:
+							raw_height, raw_width = shape.height, shape.width
+							shape.height = Cm(3)
+							shape.width = int(raw_width * shape.height / raw_height)
+						os.remove(img_path)
+				else:
 					paragraph = document.add_paragraph(_, 'Normal')
 					paragraph.paragraph_format.space_before = Pt(20)
-				else:
-					size = self.find_size(k)
-					if size:
-						pass
-						# shape.width, shape.height = int(size[0][0]), int(size[0][1])
-					else:
-						raw_height, raw_width = shape.height, shape.width
-						shape.height = Cm(3)
-						shape.width = int(raw_width * shape.height / raw_height)
-					# test
-					os.remove(img_path)
 			else:
 				paragraph = document.add_paragraph(_, 'Normal')
 				paragraph.paragraph_format.space_before = Pt(20)
